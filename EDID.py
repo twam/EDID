@@ -24,6 +24,8 @@ class EDID(bytearray):
 
         return val % 256 == 0
 
+    # Header information (0-19)
+
     def checkHeader(self):
         return self[0:8] == self.HEADER
 
@@ -126,6 +128,75 @@ class EDID(bytearray):
     def getEdidRevision(self):
         return self[19]
 
+    # Basic display parameters (20-24)
+
+    def setVideoInputParametersBitmap(self, videoInputParametersBitmap):
+        if not isinstance(videoInputParametersBitmap, int):
+            raise TypeError
+        if not (videoInputParametersBitmap >=
+                0 and videoInputParametersBitmap <= 0xFF):
+            raise ValueError
+
+        self[20] = videoInputParametersBitmap
+
+    def getVideoInputParametersBitmap(self):
+        return self[20]
+
+    def setMaximumHorizontalImageSize(self, maximumHorizontalImageSize):
+        if not isinstance(maximumHorizontalImageSize, int):
+            raise TypeError
+        if not (maximumHorizontalImageSize >=
+                0 and maximumHorizontalImageSize <= 0xFF):
+            raise ValueError
+
+        self[21] = maximumHorizontalImageSize
+
+    def getMaximumHorizontalImageSize(self):
+        return self[21]
+
+    def setMaximumVerticalImageSize(self, maximumVerticalImageSize):
+        if not isinstance(maximumVerticalImageSize, int):
+            raise TypeError
+        if not (maximumVerticalImageSize >=
+                0 and maximumVerticalImageSize <= 0xFF):
+            raise ValueError
+
+        self[22] = maximumVerticalImageSize
+
+    def getMaximumVerticalImageSize(self):
+        return self[22] * 100
+
+    def setDisplayGamma(self, displayGamma):
+        if not isinstance(displayGamma, float):
+            raise TypeError
+        if not (displayGamma >=
+                1.0 and displayGamma <= 3.54):
+            raise ValueError
+
+        self[23] = int((displayGamma * 100) - 100)
+
+    def getDisplayGamma(self):
+        return (float(self[23]) + 100.0) / 100.0
+
+    def setSupportedFeaturesBitmap(self, supportedFeaturesBitmap):
+        if not isinstance(supportedFeaturesBitmap, int):
+            raise TypeError
+        if not (supportedFeaturesBitmap >=
+                0 and supportedFeaturesBitmap <= 0xFF):
+            raise ValueError
+
+        self[24] = supportedFeaturesBitmap
+
+    def getSupportedFeaturesBitmap(self):
+        return self[24]
+
+    # Chromaticity coordinates (25-34)
+
+    # Established timing bitmap. Supported bitmap for (formerly) very common
+    # timing modes (35-37)
+
+    # Standard timing information (38-53)
+
     def writeToFile(self, filename):
         with open(filename, 'wb') as f:
             f.write(self)
@@ -156,6 +227,8 @@ def main():
 
     edid.setEdidRevision(3)
     print(edid.getEdidRevision())
+
+    edid.setVideoInputParametersBitmap(0x80)
 
     edid.calculateChecksum()
     edid.writeToFile('edid.dat')

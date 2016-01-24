@@ -3,7 +3,7 @@ import copy
 import EDID
 
 
-class DatabaseTests(unittest.TestCase):
+class EDIDTests(unittest.TestCase):
     # http://kodi.wiki/view/Creating_and_using_edid.bin_via_xorg.conf
     validEDIDData = bytearray.fromhex('''
 		00 ff ff ff ff ff ff 00  4c 2d bc 03 00 00 00 00
@@ -136,3 +136,48 @@ class DatabaseTests(unittest.TestCase):
     def testGetEdidRevision(self):
         edid = EDID.EDID(data=self.validEDIDData)
         self.assertEqual(edid.getEdidRevision(), 3)
+
+    def testSetVideoInputParametersBitmap(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setVideoInputParametersBitmap(0x80)
+        self.assertEqual(edid[20], 0x80)
+
+    def testGetVideoInputParametersBitmap(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getVideoInputParametersBitmap(), 0x80)
+
+    def testSetMaximumHorizontalImageSize(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setMaximumHorizontalImageSize(0x80)
+        self.assertEqual(edid[21], 0x80)
+
+    def testGetMaximumHorizontalImageSize(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getMaximumHorizontalImageSize(), 16)
+
+    def testSetMaximumVerticalImageSize(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setMaximumVerticalImageSize(0x80)
+        self.assertEqual(edid[22], 0x80)
+
+    def testGetMaximumVerticalImageSize(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getMaximumVerticalImageSize(), 900)
+
+    def testSetDisplayGamma(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setDisplayGamma(2.2)
+        self.assertEqual(edid[23], 120)
+
+    def testGetDisplayGamma(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getDisplayGamma(), 2.2)
+
+    def testSetSupportedFeaturesBitmap(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setSupportedFeaturesBitmap(10)
+        self.assertEqual(edid[24], 10)
+
+    def testGetSupportedFeaturesBitmap(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getSupportedFeaturesBitmap(), 10)
