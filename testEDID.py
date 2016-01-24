@@ -100,3 +100,39 @@ class DatabaseTests(unittest.TestCase):
         edid = EDID.EDID(data=bytearray(128))
         edid[12:16] = bytearray.fromhex('4E 61 BC 00')
         self.assertEqual(edid.getSerialNumber(), 12345678)
+
+    def testSetWeekOfManufacture(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setWeekOfManufacture(15)
+        self.assertEqual(edid[16], 15)
+
+    def testGetWeekOfManufacture(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getWeekOfManufacture(), 47)
+
+    def testSetYearOfManufacture(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setYearOfManufacture(2016)
+        self.assertEqual(edid[17], 26)
+
+    def testGetYearOfManufacture(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getYearOfManufacture(), 2007)
+
+    def testSetEdidVersion(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setEdidVersion(1)
+        self.assertEqual(edid[18], 1)
+
+    def testGetEdidVersion(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getEdidVersion(), 1)
+
+    def testSetEdidRevision(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setEdidRevision(3)
+        self.assertEqual(edid[19], 3)
+
+    def testGetEdidRevision(self):
+        edid = EDID.EDID(data=self.validEDIDData)
+        self.assertEqual(edid.getEdidRevision(), 3)

@@ -56,27 +56,75 @@ class EDID(bytearray):
 
     def setManufacturerProductCode(self, manufacturerProductCode):
         if not isinstance(manufacturerProductCode, int):
-            return TypeError
+            raise TypeError
         if not (manufacturerProductCode >=
                 0 and manufacturerProductCode <= 0xFFFF):
-            return ValueError
+            raise ValueError
 
         self[10:12] = manufacturerProductCode.to_bytes(2, byteorder='little')
 
     def getManufacturerProductCode(self):
         return int.from_bytes(self[10:12], byteorder='little')
 
-    def setSerialNumber(self, manufacturerProductCode):
-        if not isinstance(manufacturerProductCode, int):
-            return TypeError
-        if not (manufacturerProductCode >=
-                0 and manufacturerProductCode <= 0xFFFFFFFF):
-            return ValueError
+    def setSerialNumber(self, serialNumber):
+        if not isinstance(serialNumber, int):
+            raise TypeError
+        if not (serialNumber >=
+                0 and serialNumber <= 0xFFFFFFFF):
+            raise ValueError
 
-        self[12:16] = manufacturerProductCode.to_bytes(4, byteorder='little')
+        self[12:16] = serialNumber.to_bytes(4, byteorder='little')
 
     def getSerialNumber(self):
         return int.from_bytes(self[12:16], byteorder='little')
+
+    def setWeekOfManufacture(self, weekOfManufacture):
+        if not isinstance(weekOfManufacture, int):
+            raise TypeError
+        if not (weekOfManufacture >=
+                0 and weekOfManufacture <= 0xFF):
+            raise ValueError
+
+        self[16] = weekOfManufacture
+
+    def getWeekOfManufacture(self):
+        return self[16]
+
+    def setYearOfManufacture(self, yearOfManufacture):
+        if not isinstance(yearOfManufacture, int):
+            raise TypeError
+        if not (yearOfManufacture >=
+                1990 and yearOfManufacture <= 2245):
+            raise ValueError
+
+        self[17] = yearOfManufacture - 1990
+
+    def getYearOfManufacture(self):
+        return 1990 + self[17]
+
+    def setEdidVersion(self, edidVersion):
+        if not isinstance(edidVersion, int):
+            raise TypeError
+        if not (edidVersion >=
+                0 and edidVersion <= 0xFF):
+            raise ValueError
+
+        self[18] = edidVersion
+
+    def getEdidVersion(self):
+        return self[18]
+
+    def setEdidRevision(self, edidRevision):
+        if not isinstance(edidRevision, int):
+            raise TypeError
+        if not (edidRevision >=
+                0 and edidRevision <= 0xFF):
+            raise ValueError
+
+        self[19] = edidRevision
+
+    def getEdidRevision(self):
+        return self[19]
 
     def writeToFile(self, filename):
         with open(filename, 'wb') as f:
@@ -96,6 +144,18 @@ def main():
 
     edid.setSerialNumber(12345678)
     print(edid.getSerialNumber())
+
+    edid.setWeekOfManufacture(120)
+    print(edid.getWeekOfManufacture())
+
+    edid.setYearOfManufacture(2016)
+    print(edid.getYearOfManufacture())
+
+    edid.setEdidVersion(1)
+    print(edid.getEdidVersion())
+
+    edid.setEdidRevision(3)
+    print(edid.getEdidRevision())
 
     edid.calculateChecksum()
     edid.writeToFile('edid.dat')
