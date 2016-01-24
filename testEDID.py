@@ -63,7 +63,7 @@ class DatabaseTests(unittest.TestCase):
     def testSetManufacturerID(self):
         edid = EDID.EDID(data=bytearray(0x100))
         edid.setManufacturerID('SAM')
-        self.assertEqual(edid[8:10], bytearray.fromhex('4c 2d'))
+        self.assertEqual(edid[8:10], bytearray.fromhex('4C 2D'))
 
     def testGetManufacturerID(self):
         edid = EDID.EDID(data=self.validEDIDData)
@@ -72,8 +72,18 @@ class DatabaseTests(unittest.TestCase):
     def testSetManufacturerProductCode(self):
         edid = EDID.EDID(data=bytearray(0x100))
         edid.setManufacturerProductCode(956)
-        self.assertEqual(edid[10:12], bytearray.fromhex('bc 03'))
+        self.assertEqual(edid[10:12], bytearray.fromhex('BC 03'))
 
     def testGetManufacturerProductCode(self):
         edid = EDID.EDID(data=self.validEDIDData)
         self.assertEqual(edid.getManufacturerProductCode(), 956)
+
+    def testSetSerialNumber(self):
+        edid = EDID.EDID(data=bytearray(0x100))
+        edid.setSerialNumber(12345678)
+        self.assertEqual(edid[12:16], bytearray.fromhex('4E 61 BC 00'))
+
+    def testGetSerialNumber(self):
+        edid = EDID.EDID(data=bytearray(0x100))
+        edid[12:16] = bytearray.fromhex('4E 61 BC 00')
+        self.assertEqual(edid.getSerialNumber(), 12345678)

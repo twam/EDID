@@ -66,6 +66,18 @@ class EDID(bytearray):
     def getManufacturerProductCode(self):
         return int.from_bytes(self[10:12], byteorder='little')
 
+    def setSerialNumber(self, manufacturerProductCode):
+        if not isinstance(manufacturerProductCode, int):
+            return TypeError
+        if not (manufacturerProductCode >=
+                0 and manufacturerProductCode <= 0xFFFFFFFF):
+            return ValueError
+
+        self[12:16] = manufacturerProductCode.to_bytes(4, byteorder='little')
+
+    def getSerialNumber(self):
+        return int.from_bytes(self[12:16], byteorder='little')
+
     def writeToFile(self, filename):
         with open(filename, 'wb') as f:
             f.write(self)
@@ -81,6 +93,9 @@ def main():
 
     edid.setManufacturerProductCode(12345)
     print(edid.getManufacturerProductCode())
+
+    edid.setSerialNumber(12345678)
+    print(edid.getSerialNumber())
 
     edid.calculateChecksum()
     edid.writeToFile('edid.dat')
