@@ -4,6 +4,7 @@ import EDID
 
 
 class DatabaseTests(unittest.TestCase):
+    # http://kodi.wiki/view/Creating_and_using_edid.bin_via_xorg.conf
     validEDIDData = bytearray.fromhex('''
 		00 ff ff ff ff ff ff 00  4c 2d bc 03 00 00 00 00
 		2f 11 01 03 80 10 09 78  0a ee 91 a3 54 4c 99 26
@@ -23,45 +24,57 @@ class DatabaseTests(unittest.TestCase):
 		00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 0d
 		'''.replace('\n', ' ').replace('\t', ' '))
 
+    # http://flipthatbit.net/2011/04/ddc2-interface-crafting-your-own-edid/
+    validEDIDData2 = bytearray.fromhex('''
+        00 FF FF FF FF FF FF 00  1A 82 00 01 00 00 00 01
+        0C 15 01 02 08 11 0D 78  05 00 00 00 00 00 00 00
+        00 00 00 20 00 00 31 40  01 01 01 01 01 01 01 01
+        01 01 01 01 01 01 00 00  00 FC 00 66 6C 69 70 74
+        68 61 74 62 69 74 30 31  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 0A
+        '''.replace('\n', ' ').replace('\t', ' '))
+
     def testCheckChecksumValid(self):
         edid = EDID.EDID(data=self.validEDIDData)
         self.assertTrue(edid.checkChecksum())
 
     def testCheckChecksumInvalid(self):
         edid = EDID.EDID(data=self.validEDIDData)
-        edid[-1] = 0
+        edid[127] = 0
         self.assertFalse(edid.checkChecksum())
 
     def testCalculateChecksum(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         edid[-1] = 42
 
         edid.calculateChecksum()
-        self.assertEqual(edid[-1], 0x00)
+        self.assertEqual(edid[127], 0x00)
 
     def testCalculateChecksum2(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         edid[0] = 1
 
         edid.calculateChecksum()
-        self.assertEqual(edid[-1], 255)
+        self.assertEqual(edid[127], 255)
 
     def testCheckHeaderValid(self):
         edid = EDID.EDID(data=self.validEDIDData)
         self.assertTrue(edid.checkHeader())
 
     def testCheckHeaderInvalid(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         self.assertFalse(edid.checkHeader())
 
     def testSetHeader(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         edid.setHeader()
         self.assertEqual(edid[0:8],
                          bytearray.fromhex('00 FF FF FF FF FF FF 00'))
 
     def testSetManufacturerID(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         edid.setManufacturerID('SAM')
         self.assertEqual(edid[8:10], bytearray.fromhex('4C 2D'))
 
@@ -70,7 +83,7 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(edid.getManufacturerID(), 'SAM')
 
     def testSetManufacturerProductCode(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         edid.setManufacturerProductCode(956)
         self.assertEqual(edid[10:12], bytearray.fromhex('BC 03'))
 
@@ -79,11 +92,11 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(edid.getManufacturerProductCode(), 956)
 
     def testSetSerialNumber(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         edid.setSerialNumber(12345678)
         self.assertEqual(edid[12:16], bytearray.fromhex('4E 61 BC 00'))
 
     def testGetSerialNumber(self):
-        edid = EDID.EDID(data=bytearray(0x100))
+        edid = EDID.EDID(data=bytearray(128))
         edid[12:16] = bytearray.fromhex('4E 61 BC 00')
         self.assertEqual(edid.getSerialNumber(), 12345678)

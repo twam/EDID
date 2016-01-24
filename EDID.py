@@ -6,20 +6,20 @@ import re
 class EDID(bytearray):
     HEADER = bytearray.fromhex('00 FF FF FF FF FF FF 00')
 
-    def __init__(self, data=bytearray(0x100)):
+    def __init__(self, data=bytearray(128)):
         self[:] = data
 
     def calculateChecksum(self):
         val = 0
 
-        for i in self[:-1]:
+        for i in self[0:127]:
             val += i
 
         self[-1] = (256 - (val % 256)) % 256
 
     def checkChecksum(self):
         val = 0
-        for i in self:
+        for i in self[0:128]:
             val += i
 
         return val % 256 == 0
