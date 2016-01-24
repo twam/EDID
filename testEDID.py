@@ -4,8 +4,9 @@ import EDID
 
 
 class EDIDTests(unittest.TestCase):
-    # http://kodi.wiki/view/Creating_and_using_edid.bin_via_xorg.conf
-    validEDIDData = bytearray.fromhex('''
+    VALID_EDID_DATA = [
+        # http://kodi.wiki/view/Creating_and_using_edid.bin_via_xorg.conf
+        bytearray.fromhex('''
 		00 ff ff ff ff ff ff 00  4c 2d bc 03 00 00 00 00
 		2f 11 01 03 80 10 09 78  0a ee 91 a3 54 4c 99 26
 		0f 50 54 21 08 00 81 80  a9 40 01 01 01 01 01 01
@@ -22,10 +23,10 @@ class EDIDTests(unittest.TestCase):
 		1c 16 20 58 2c 25 00 a0  5a 00 00 00 9e 01 1d 80
 		d0 72 1c 16 20 10 2c 25  80 a0 5a 00 00 00 9e 00
 		00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 0d
-		'''.replace('\n', ' ').replace('\t', ' '))
+		'''.replace('\n', ' ').replace('\t', ' ')),
 
-    # http://flipthatbit.net/2011/04/ddc2-interface-crafting-your-own-edid/
-    validEDIDData2 = bytearray.fromhex('''
+        # http://flipthatbit.net/2011/04/ddc2-interface-crafting-your-own-edid/
+        bytearray.fromhex('''
         00 FF FF FF FF FF FF 00  1A 82 00 01 00 00 00 01
         0C 15 01 02 08 11 0D 78  05 00 00 00 00 00 00 00
         00 00 00 20 00 00 31 40  01 01 01 01 01 01 01 01
@@ -34,14 +35,44 @@ class EDIDTests(unittest.TestCase):
         00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 0A
+        '''.replace('\n', ' ').replace('\t', ' ')),
+
+        # iMac (Retina 5K, 27-inch, Late 2014)
+        bytearray.fromhex('''
+        00 ff ff ff ff ff ff 00  06 10 03 ae 26 68 e7 ce
+        0c 18 01 04 b5 3c 22 78  22 c8 05 a7 55 4b a0 26
+        0c 50 54 00 00 00 01 01  01 01 01 01 01 01 01 01
+        01 01 01 01 01 01 00 00  00 10 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 10 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 fc 00 69
+        4d 61 63 0a 20 20 20 20  20 20 20 20 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 02 ea
+        02 03 1e 81 70 fa 10 00  00 12 7a 31 fc 78 bd cc
+        02 90 88 51 d3 68 fa 10  00 f5 f9 fa ff ff 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 92
+        70 13 79 03 00 03 00 14  80 6e 01 84 ff 13 9f 00
+        2f 80 1f 00 3f 0b 51 00  02 00 04 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00  00 00 00 00 00 00 c7 90
         '''.replace('\n', ' ').replace('\t', ' '))
+    ]
 
     def testCheckChecksumValid(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertTrue(edid.checkChecksum())
+        for data in self.VALID_EDID_DATA:
+            edid = EDID.EDID(data=data)
+            self.assertTrue(edid.checkChecksum())
 
     def testCheckChecksumInvalid(self):
-        edid = EDID.EDID(data=self.validEDIDData)
+        edid = EDID.EDID(data=self.VALID_EDID_DATA[0])
         edid[127] = 0
         self.assertFalse(edid.checkChecksum())
 
@@ -60,8 +91,9 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[127], 255)
 
     def testCheckHeaderValid(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertTrue(edid.checkHeader())
+        for data in self.VALID_EDID_DATA:
+            edid = EDID.EDID(data=data)
+            self.assertTrue(edid.checkHeader())
 
     def testCheckHeaderInvalid(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -79,8 +111,10 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[8:10], bytearray.fromhex('4C 2D'))
 
     def testGetManufacturerID(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getManufacturerID(), 'SAM')
+        manufacturerIDs = ['SAM', 'FTB', 'APP']
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(edid.getManufacturerID(), manufacturerIDs[key])
 
     def testSetManufacturerProductCode(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -88,8 +122,12 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[10:12], bytearray.fromhex('BC 03'))
 
     def testGetManufacturerProductCode(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getManufacturerProductCode(), 956)
+        manufacturerProductCodes = [956, 256, 44547]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getManufacturerProductCode(),
+                manufacturerProductCodes[key])
 
     def testSetSerialNumber(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -97,9 +135,10 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[12:16], bytearray.fromhex('4E 61 BC 00'))
 
     def testGetSerialNumber(self):
-        edid = EDID.EDID(data=bytearray(128))
-        edid[12:16] = bytearray.fromhex('4E 61 BC 00')
-        self.assertEqual(edid.getSerialNumber(), 12345678)
+        serialNumbers = [0, 16777216, 3471271974]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(edid.getSerialNumber(), serialNumbers[key])
 
     def testSetWeekOfManufacture(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -107,8 +146,12 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[16], 15)
 
     def testGetWeekOfManufacture(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getWeekOfManufacture(), 47)
+        weekOfManufactures = [47, 12, 12]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getWeekOfManufacture(),
+                weekOfManufactures[key])
 
     def testSetYearOfManufacture(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -116,8 +159,12 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[17], 26)
 
     def testGetYearOfManufacture(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getYearOfManufacture(), 2007)
+        yearOfManufactures = [2007, 2011, 2014]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getYearOfManufacture(),
+                yearOfManufactures[key])
 
     def testSetEdidVersion(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -125,8 +172,10 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[18], 1)
 
     def testGetEdidVersion(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getEdidVersion(), 1)
+        edidVersions = [1, 1, 1]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(edid.getEdidVersion(), edidVersions[key])
 
     def testSetEdidRevision(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -134,8 +183,10 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[19], 3)
 
     def testGetEdidRevision(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getEdidRevision(), 3)
+        edidRevisions = [3, 2, 4]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(edid.getEdidRevision(), edidRevisions[key])
 
     def testSetVideoInputParametersBitmap(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -143,8 +194,12 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[20], 0x80)
 
     def testGetVideoInputParametersBitmap(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getVideoInputParametersBitmap(), 0x80)
+        videoInputParametersBitmaps = [0x80, 0x08, 0xB5]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getVideoInputParametersBitmap(),
+                videoInputParametersBitmaps[key])
 
     def testSetMaximumHorizontalImageSize(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -152,8 +207,12 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[21], 0x80)
 
     def testGetMaximumHorizontalImageSize(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getMaximumHorizontalImageSize(), 16)
+        maximumHorizontalImageSizes = [16, 17, 60]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getMaximumHorizontalImageSize(),
+                maximumHorizontalImageSizes[key])
 
     def testSetMaximumVerticalImageSize(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -161,8 +220,12 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[22], 0x80)
 
     def testGetMaximumVerticalImageSize(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getMaximumVerticalImageSize(), 900)
+        maximumVerticalImageSizes = [900, 1300, 3400]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getMaximumVerticalImageSize(),
+                maximumVerticalImageSizes[key])
 
     def testSetDisplayGamma(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -170,8 +233,10 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[23], 120)
 
     def testGetDisplayGamma(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getDisplayGamma(), 2.2)
+        displayGammas = [2.2, 2.2, 2.2]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(edid.getDisplayGamma(), displayGammas[key])
 
     def testSetSupportedFeaturesBitmap(self):
         edid = EDID.EDID(data=bytearray(128))
@@ -179,5 +244,9 @@ class EDIDTests(unittest.TestCase):
         self.assertEqual(edid[24], 10)
 
     def testGetSupportedFeaturesBitmap(self):
-        edid = EDID.EDID(data=self.validEDIDData)
-        self.assertEqual(edid.getSupportedFeaturesBitmap(), 10)
+        supportedFeaturesBitmaps = [0x0A, 0x05, 0x22]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getSupportedFeaturesBitmap(),
+                supportedFeaturesBitmaps[key])
