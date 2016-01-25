@@ -3,6 +3,63 @@
 import re
 
 
+class EdidDescriptor:
+    SIZE = 18
+
+    def __init__(self, parent, offset):
+        self.parent = parent
+        self.offset = offset
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if key >= 0 and key < self.SIZE:
+                newKey = key + self.offset
+            elif key < 0 and key >= -self.SIZE:
+                newKey = key + self.SIZE + self.offset
+            else:
+                raise IndexError
+
+            return self.parent[newKey]
+        elif isinstance(key, slice):
+            if key.start is None:
+                newStart = self.offset
+            elif key.start >= 0:
+                newStart = min(key.start, self.SIZE) + self.offset
+            elif key.start < 0:
+                newStart = max(0, key.start + self.SIZE) + self.offset
+            else:
+                raise IndexError
+
+            if key.stop is None:
+                newStop = self.offset + self.SIZE
+            elif key.stop >= 0:
+                newStop = min(key.stop, self.SIZE) + self.offset
+            elif key.stop < 0:
+                newStop = max(0, key.stop + self.SIZE) + self.offset
+            else:
+                raise IndexError
+
+            return self.parent[slice(newStart, newStop, key.step)]
+        else:
+            raise TypeError
+
+    def __setitem__(self, key, value):
+        if isinstance(key, int):
+            if key >= 0 and key < self.SIZE:
+                newKey = key + self.offset
+            elif key < 0 and key >= -self.SIZE:
+                newKey = key + self.SIZE + self.offset
+            else:
+                raise IndexError
+
+            self.parent[newKey] = value
+        else:
+            raise TypeError
+
+    def getHeader(self):
+        return self[0:2]
+
+
 class Edid(bytearray):
     HEADER = bytearray.fromhex('00 FF FF FF FF FF FF 00')
 
@@ -12,7 +69,7 @@ class Edid(bytearray):
             return
 
         self[:] = bytearray(128)
-        self.setHeader()
+        self.initHeader()
 
         if version:
             self.setEdidVersion(int(version))
@@ -42,7 +99,7 @@ class Edid(bytearray):
     def checkHeader(self):
         return self[0:8] == self.HEADER
 
-    def setHeader(self):
+    def initHeader(self):
         self[0:8] = self.HEADER
 
     def setManufacturerID(self, manufacturerID):

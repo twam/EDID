@@ -1,6 +1,6 @@
 import unittest
 import copy
-from edid import Edid
+from edid import Edid, EdidDescriptor
 
 
 class EdidTests(unittest.TestCase):
@@ -101,7 +101,7 @@ class EdidTests(unittest.TestCase):
 
     def testSetHeader(self):
         edid = Edid(data=bytearray(128))
-        edid.setHeader()
+        edid.initHeader()
         self.assertEqual(edid[0:8],
                          bytearray.fromhex('00 FF FF FF FF FF FF 00'))
 
@@ -418,3 +418,88 @@ class EdidTests(unittest.TestCase):
             self.assertEqual(
                 edid.getNumberOfExtensions(),
                 numberOfExtensions[key])
+
+
+class EdidDescriptorTests(unittest.TestCase):
+    OFFSET = 10
+    SIZE = 18
+
+    def setUp(self):
+        self.parent = bytearray(self.OFFSET + self.SIZE + 5)
+        for i in range(0, len(self.parent)):
+            self.parent[i] = i
+
+        self.edidDescriptor = EdidDescriptor(self.parent, self.OFFSET)
+
+    def testGetItemIntKeyPositive(self):
+        for i in range(0, self.SIZE):
+            self.assertEqual(self.edidDescriptor[i], i + self.OFFSET)
+
+    def testGetItemIntKeyPositiveOutOfRange(self):
+        with self.assertRaises(IndexError):
+            self.edidDescriptor[self.SIZE]
+
+    def testGetItemIntKeyNegative(self):
+        for i in range(-self.SIZE, -1):
+            self.assertEqual(
+                self.edidDescriptor[i],
+                i + self.OFFSET + self.SIZE)
+
+    def testGetItemIntKeyNegativeOutOfRange(self):
+        with self.assertRaises(IndexError):
+            self.edidDescriptor[-self.SIZE - 1]
+
+    def testGetItemSliceKeyPositive(self):
+        self.assertEqual(
+            self.edidDescriptor[
+                1:self.SIZE -
+                1],
+            bytearray(
+                [
+                    i for i in range(
+                        self.OFFSET +
+                        1,
+                        self.OFFSET +
+                        self.SIZE -
+                        1)]))
+
+    def testGetItemSliceKeyPositiveOnlyStart(self):
+        self.assertEqual(self.edidDescriptor[1:], bytearray(
+            [i for i in range(self.OFFSET + 1, self.OFFSET + self.SIZE)]))
+
+    def testGetItemSliceKeyPositiveOnlyEnd(self):
+        self.assertEqual(self.edidDescriptor[:self.SIZE - 1], bytearray(
+            [i for i in range(self.OFFSET, self.OFFSET + self.SIZE - 1)]))
+
+    def testGetItemSliceKeyPositiveOutOfRange(self):
+        self.assertEqual(self.edidDescriptor[
+                         0:self.SIZE + 1], bytearray([i for i in range(self.OFFSET, self.OFFSET + self.SIZE)]))
+
+    def testGetItemSliceKeyMixed(self):
+        self.assertEqual(self.edidDescriptor[
+                         1:-1], bytearray([i for i in range(self.OFFSET + 1, self.OFFSET + self.SIZE - 1)]))
+
+    def testGetItemSliceKeyNegative(self):
+        self.assertEqual(self.edidDescriptor[-self.SIZE + 1:-1], bytearray(
+            [i for i in range(self.OFFSET + 1, self.OFFSET + self.SIZE - 1)]))
+
+    def testGetItemSliceKeyNegativeOutOfRange(self):
+        self.assertEqual(self.edidDescriptor[-self.SIZE - 1:-1], bytearray(
+            [i for i in range(self.OFFSET, self.OFFSET + self.SIZE - 1)]))
+
+    def testSetItemIntKeyPositive(self):
+        for i in range(0, self.SIZE):
+            self.edidDescriptor[i] = i
+            self.assertEqual(self.parent[i + self.OFFSET], i)
+
+    def testSetItemIntKeyNegative(self):
+        for i in range(-self.SIZE, -1):
+            self.edidDescriptor[i] = -i
+            self.assertEqual(self.parent[i + self.OFFSET + self.SIZE], -i)
+
+    def testGetHeader(self):
+        self.parent[self.OFFSET + 0] = 1
+        self.parent[self.OFFSET + 1] = 2
+        self.assertEqual(
+            self.edidDescriptor.getHeader(),
+            bytearray.fromhex('01 02'))
