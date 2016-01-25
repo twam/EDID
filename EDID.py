@@ -6,8 +6,21 @@ import re
 class EDID(bytearray):
     HEADER = bytearray.fromhex('00 FF FF FF FF FF FF 00')
 
-    def __init__(self, data=bytearray(128)):
-        self[:] = data
+    def __init__(self, data=None, version=None):
+        if data:
+            self[:] = data
+            return
+
+        self[:] = bytearray(128)
+        self.setHeader()
+
+        if version:
+            self.setEdidVersion(int(version))
+            self.setEdidRevision(int((version-int(version))*10))
+
+        # set all standard timing information to invalid
+        for index in range(0, 8):
+            self.setStandardTimingInformation(index, None, None, None)
 
     def calculateChecksum(self):
         val = 0
@@ -127,6 +140,9 @@ class EDID(bytearray):
 
     def getEdidRevision(self):
         return self[19]
+
+    def getVersion(self):
+        return float(self.getEdidVersion())+float(self.getEdidRevision())/10.0
 
     # Basic display parameters (20-24)
 
@@ -297,6 +313,83 @@ class EDID(bytearray):
 
     # Standard timing information (38-53)
 
+    def setStandardTimingInformation(self, index, resolutionX, ratio, verticalFrequency):
+        if (resolutionX == None) and (ratio == None) and (verticalFrequency == None):
+            self[38+2*index+0] = 1
+            self[38+2*index+1] = 1
+            return
+
+        if not isinstance(resolutionX, int):
+            raise TypeError
+        if not isinstance(ratio, float):
+            raise TypeError
+        if not isinstance(verticalFrequency, int):
+            raise TypeError
+
+        if not (resolutionX >= 256
+                and resolutionX <= 2288 and resolutionX % 8 == 0):
+            raise ValueError
+        if not (verticalFrequency >=
+                60 and verticalFrequency <= 123):
+            raise ValueError
+
+        self[38+2*index+0] = (resolutionX>>3)-31
+
+        if (ratio == 1.0):
+            if (self.getVersion() < 1.3):
+                self[38+2*index+1] = 0
+            else:
+                raise ValueError
+        elif (ratio == 16.0/10.0):
+            if (self.getVersion() >= 1.3):
+                self[38+2*index+1] = 0
+            else:
+                raise ValueError
+        elif (ratio == 4.0/3.0):
+            self[38+2*index+1] = 1 << 6
+        elif (ratio == 5.0/4.0):
+            self[38+2*index+1] = 2 << 6
+        elif (ratio == 16.0/9.0):
+            self[38+2*index+1] = 3 << 6
+
+        self[38+2*index+1] = self[38+2*index+1] | (verticalFrequency-60)
+
+    def getStandardTimingInformation(self, index):
+        # check for invalid entry
+        if (self[38+2*index+0] == 1) and (self[38+2*index+1] == 1):
+            return None, None, None
+
+        resolutionX = 8*(31+self[38+2*index+0])
+        ratioRaw = self[38+2*index+1] >> 6
+        if (ratioRaw == 0) and (self.getVersion() < 1.3):
+            ratio = 1.0
+        elif (ratioRaw == 0):
+            ratio = 16.0/10.0
+        elif (ratioRaw == 1):
+            ratio = 4.0/3.0
+        elif (ratioRaw == 2):
+            ratio = 5.0/4.0
+        elif (ratioRaw == 3):
+            ratio = 16.0/9.0
+        else:
+            ratio = None
+        verticalFrequency = 60 + (self[38+2*index+1] & 0x3F)
+
+        return resolutionX, ratio, verticalFrequency
+
+    def setNumberOfExtensions(self, numberOfExtensions):
+        if not isinstance(numberOfExtensions, int):
+            raise TypeError
+
+        if not (numberOfExtensions >= 0
+            and numberOfExtensions <= 0xFF):
+            raise ValueError
+
+        self[126] = numberOfExtensions
+
+    def getNumberOfExtensions(self):
+        return self[126]
+
     def writeToFile(self, filename):
         with open(filename, 'wb') as f:
             f.write(self)
@@ -305,7 +398,7 @@ class EDID(bytearray):
 def main():
     print(round(0.5, 0))
 
-    edid = EDID()
+    edid = EDID(version=1.3)
 
     edid.setHeader()
 
@@ -324,11 +417,9 @@ def main():
     edid.setYearOfManufacture(2016)
     print(edid.getYearOfManufacture())
 
-    edid.setEdidVersion(1)
-    print(edid.getEdidVersion())
+    edid.setDisplayGamma(2.2)
 
-    edid.setEdidRevision(3)
-    print(edid.getEdidRevision())
+    edid.setStandardTimingInformation(0, 640, 4.0/3.0, 60)
 
     edid.setVideoInputParametersBitmap(0x80)
 

@@ -188,6 +188,12 @@ class EDIDTests(unittest.TestCase):
             edid = EDID.EDID(data=data)
             self.assertEqual(edid.getEdidRevision(), edidRevisions[key])
 
+    def testGetVersion(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setEdidVersion(1)
+        edid.setEdidRevision(3)
+        self.assertAlmostEqual(edid.getVersion(), 1.3, places = 1)
+
     def testSetVideoInputParametersBitmap(self):
         edid = EDID.EDID(data=bytearray(128))
         edid.setVideoInputParametersBitmap(0x80)
@@ -343,3 +349,64 @@ class EDIDTests(unittest.TestCase):
             self.assertAlmostEqual(
                 coordinates[1],
                 chromaticityCoordinatesWhites[key][1], places=3)
+
+    def testSetStandardTimingInformation(self):
+        for index in range(0, 8):
+            edid = EDID.EDID(version = 1.2)
+            edid.setStandardTimingInformation(index, 640, 1.0, 70)
+            self.assertEqual(edid[38+2*index+0], 49)
+            self.assertEqual(edid[38+2*index+1], 10)
+
+            edid = EDID.EDID(version = 1.3)
+            edid.setStandardTimingInformation(index, None, None, None)
+            self.assertEqual(edid[38+2*index+0], 1)
+            self.assertEqual(edid[38+2*index+1], 1)
+
+            edid = EDID.EDID(version = 1.3)
+            edid.setStandardTimingInformation(index, 256, 16.0/10.0, 80)
+            self.assertEqual(edid[38+2*index+0], 1)
+            self.assertEqual(edid[38+2*index+1], 20)
+
+            edid = EDID.EDID(version = 1.3)
+            edid.setStandardTimingInformation(index, 1024, 4.0/3.0, 90)
+            self.assertEqual(edid[38+2*index+0], 97)
+            self.assertEqual(edid[38+2*index+1], 94)
+
+            edid = EDID.EDID(version = 1.3)
+            edid.setStandardTimingInformation(index, 1600, 5.0/4.0, 100)
+            self.assertEqual(edid[38+2*index+0], 169)
+            self.assertEqual(edid[38+2*index+1], 168)
+
+            edid = EDID.EDID(version = 1.3)
+            edid.setStandardTimingInformation(index, 1920, 16.0/9.0, 120)
+            self.assertEqual(edid[38+2*index+0], 209)
+            self.assertEqual(edid[38+2*index+1], 252)
+
+    def testGetStandardTimingInformation(self):
+        standardTimingInformations = [
+            [(1280, 5.0/4.0, 60), (1600, 4.0/3.0, 60)],
+            [(640, 4.0/3.0, 60)],
+            []
+            ]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            for index in range(0, 8):
+                standardTimingInformation = edid.getStandardTimingInformation(index)
+                correctStandardTimingInformation = standardTimingInformations[key][index] if index < len(standardTimingInformations[key]) else (None, None, None)
+
+                self.assertEqual(standardTimingInformation[0], correctStandardTimingInformation[0])
+                self.assertEqual(standardTimingInformation[1], correctStandardTimingInformation[1])
+                self.assertEqual(standardTimingInformation[2], correctStandardTimingInformation[2])
+
+    def testSetNumberOfExtensions(self):
+        edid = EDID.EDID(version = 1.3)
+        edid.setNumberOfExtensions(2)
+        self.assertEqual(edid[126], 2)
+
+    def testGetNumberOfExtensions(self):
+        numberOfExtensions = [1, 0, 2]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getNumberOfExtensions(),
+                numberOfExtensions[key])
