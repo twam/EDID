@@ -192,8 +192,108 @@ class EDID(bytearray):
 
     # Chromaticity coordinates (25-34)
 
+    def setChromaticityCoordinatesRed(
+            self, X, Y):
+        if ((not isinstance(X, float)) or (not isinstance(Y, float))):
+            return TypeError
+
+        if ((not (X >= 0 and X <= 1.0)) or (not (Y >= 0 and Y <= 1.0))):
+            raise ValueError
+
+        Xint = int(round(X * 1024, 0))
+        Yint = int(round(Y * 1024, 0))
+
+        self[25] = (((Xint & 0x03) | (Yint & 0x03)) << 4) | (self[25] & 0x0F)
+
+        self[27] = Xint >> 2
+        self[28] = Yint >> 2
+
+    def setChromaticityCoordinatesGreen(
+            self, X, Y):
+        if ((not isinstance(X, float)) or (not isinstance(Y, float))):
+            return TypeError
+
+        if ((not (X >= 0 and X <= 1.0)) or (not (Y >= 0 and Y <= 1.0))):
+            raise ValueError
+
+        Xint = int(round(X * 1024, 0))
+        Yint = int(round(Y * 1024, 0))
+
+        self[25] = (((Xint & 0x03) | (Yint & 0x03)) << 0) | (self[25] & 0xF0)
+
+        self[29] = Xint >> 2
+        self[30] = Yint >> 2
+
+    def setChromaticityCoordinatesBlue(
+            self, X, Y):
+        if ((not isinstance(X, float)) or (not isinstance(Y, float))):
+            return TypeError
+
+        if ((not (X >= 0 and X <= 1.0)) or (not (Y >= 0 and Y <= 1.0))):
+            raise ValueError
+
+        Xint = int(round(X * 1024, 0))
+        Yint = int(round(Y * 1024, 0))
+
+        self[26] = (((Xint & 0x03) | (Yint & 0x03)) << 4) | (self[25] & 0x0F)
+
+        self[31] = Xint >> 2
+        self[32] = Yint >> 2
+
+    def setChromaticityCoordinatesWhite(
+            self, X, Y):
+        if ((not isinstance(X, float)) or (not isinstance(Y, float))):
+            return TypeError
+
+        if ((not (X >= 0 and X <= 1.0)) or (not (Y >= 0 and Y <= 1.0))):
+            raise ValueError
+
+        Xint = int(round(X * 1024, 0))
+        Yint = int(round(Y * 1024, 0))
+
+        self[26] = (((Xint & 0x03) | (Yint & 0x03)) << 0) | (self[25] & 0xF0)
+
+        self[33] = Xint >> 2
+        self[34] = Yint >> 2
+
+    def getChromaticityCoordinatesRed(self):
+        X = round(((self[27] << 2) | ((self[25] >> 6) & 0x03)) / 1024.0, 3)
+        Y = round(((self[28] << 2) | ((self[25] >> 4) & 0x03)) / 1024.0, 3)
+
+        return X, Y
+
+    def getChromaticityCoordinatesGreen(self):
+        X = round(((self[29] << 2) | ((self[25] >> 2) & 0x03)) / 1024.0, 3)
+        Y = round(((self[30] << 2) | ((self[25] >> 0) & 0x03)) / 1024.0, 3)
+
+        return X, Y
+
+    def getChromaticityCoordinatesBlue(self):
+        X = round(((self[31] << 2) | ((self[26] >> 6) & 0x03)) / 1024.0, 3)
+        Y = round(((self[32] << 2) | ((self[26] >> 4) & 0x03)) / 1024.0, 3)
+
+        return X, Y
+
+    def getChromaticityCoordinatesWhite(self):
+        X = round(((self[33] << 2) | ((self[26] >> 2) & 0x03)) / 1024.0, 3)
+        Y = round(((self[34] << 2) | ((self[26] >> 0) & 0x03)) / 1024.0, 3)
+
+        return X, Y
+
     # Established timing bitmap. Supported bitmap for (formerly) very common
     # timing modes (35-37)
+
+    def setEstablishedTimingBitmap(self, establishedTimingBitmap):
+        if not isinstance(establishedTimingBitmap, int):
+            raise TypeError
+        if not (establishedTimingBitmap >=
+                0 and establishedTimingBitmap <= 0xFFFFFF):
+            raise ValueError
+
+        self[35:38] = establishedTimingBitmap.to_bytes(3, byteorder='big')
+
+    def getEstablishedTimingBitmap(self):
+        return int.from_bytes(self[35:38], byteorder='big')
 
     # Standard timing information (38-53)
 
@@ -203,6 +303,8 @@ class EDID(bytearray):
 
 
 def main():
+    print(round(0.5, 0))
+
     edid = EDID()
 
     edid.setHeader()

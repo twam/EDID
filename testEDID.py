@@ -250,3 +250,96 @@ class EDIDTests(unittest.TestCase):
             self.assertEqual(
                 edid.getSupportedFeaturesBitmap(),
                 supportedFeaturesBitmaps[key])
+
+    def testSetEstablishedTimingBitmap(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setEstablishedTimingBitmap(0x123456)
+        self.assertEqual(edid[35:38], bytearray.fromhex('12 34 56'))
+
+    def testGetEstablishedTimingBitmap(self):
+        establishedTimingBitmaps = [0x210800, 0x200000, 0]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            self.assertEqual(
+                edid.getEstablishedTimingBitmap(),
+                establishedTimingBitmaps[key])
+
+    def testSetChromaticityCoordinatesRed(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setChromaticityCoordinatesRed(0.888, 0.777)
+        self.assertEqual(edid[25], 0x10)
+        self.assertEqual(edid[27], 0xE3)
+        self.assertEqual(edid[28], 0xC7)
+
+    def testSetChromaticityCoordinatesGreen(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setChromaticityCoordinatesGreen(0.888, 0.777)
+        self.assertEqual(edid[25], 0x01)
+        self.assertEqual(edid[29], 0xE3)
+        self.assertEqual(edid[30], 0xC7)
+
+    def testSetChromaticityCoordinatesBlue(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setChromaticityCoordinatesBlue(0.888, 0.777)
+        self.assertEqual(edid[26], 0x10)
+        self.assertEqual(edid[31], 0xE3)
+        self.assertEqual(edid[32], 0xC7)
+
+    def testSetChromaticityCoordinatesWhite(self):
+        edid = EDID.EDID(data=bytearray(128))
+        edid.setChromaticityCoordinatesWhite(0.888, 0.777)
+        self.assertEqual(edid[26], 0x01)
+        self.assertEqual(edid[33], 0xE3)
+        self.assertEqual(edid[34], 0xC7)
+
+    def testGetChromaticityCoordinatesRed(self):
+        chromaticityCoordinatesReds = [
+            (0.640, 0.330), (0.0, 0.0), (0.655, 0.332)]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            coordinates = edid.getChromaticityCoordinatesRed()
+            self.assertAlmostEqual(
+                coordinates[0],
+                chromaticityCoordinatesReds[key][0], places=3)
+            self.assertAlmostEqual(
+                coordinates[1],
+                chromaticityCoordinatesReds[key][1], places=3)
+
+    def testGetChromaticityCoordinatesGreen(self):
+        chromaticityCoordinatesGreen = [
+            (0.300, 0.600), (0.0, 0.0), (0.295, 0.625)]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            coordinates = edid.getChromaticityCoordinatesGreen()
+            self.assertAlmostEqual(
+                coordinates[0],
+                chromaticityCoordinatesGreen[key][0], places=3)
+            self.assertAlmostEqual(
+                coordinates[1],
+                chromaticityCoordinatesGreen[key][1], places=3)
+
+    def testGetChromaticityCoordinatesBlue(self):
+        chromaticityCoordinatesBlues = [
+            (0.150, 0.060), (0.0, 0.0), (0.148, 0.047)]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            coordinates = edid.getChromaticityCoordinatesBlue()
+            self.assertAlmostEqual(
+                coordinates[0],
+                chromaticityCoordinatesBlues[key][0], places=3)
+            self.assertAlmostEqual(
+                coordinates[1],
+                chromaticityCoordinatesBlues[key][1], places=3)
+
+    def testGetChromaticityCoordinatesWhite(self):
+        chromaticityCoordinatesWhites = [
+            (0.312, 0.329), (0.0, 0.0), (0.313, 0.329)]
+        for key, data in enumerate(self.VALID_EDID_DATA):
+            edid = EDID.EDID(data=data)
+            coordinates = edid.getChromaticityCoordinatesWhite()
+            self.assertAlmostEqual(
+                coordinates[0],
+                chromaticityCoordinatesWhites[key][0], places=3)
+            self.assertAlmostEqual(
+                coordinates[1],
+                chromaticityCoordinatesWhites[key][1], places=3)
