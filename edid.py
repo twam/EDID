@@ -3,7 +3,7 @@
 import re
 
 
-class EDID(bytearray):
+class Edid(bytearray):
     HEADER = bytearray.fromhex('00 FF FF FF FF FF FF 00')
 
     def __init__(self, data=None, version=None):
@@ -16,7 +16,7 @@ class EDID(bytearray):
 
         if version:
             self.setEdidVersion(int(version))
-            self.setEdidRevision(int((version-int(version))*10))
+            self.setEdidRevision(int((version - int(version)) * 10))
 
         # set all standard timing information to invalid
         for index in range(0, 8):
@@ -142,7 +142,8 @@ class EDID(bytearray):
         return self[19]
 
     def getVersion(self):
-        return float(self.getEdidVersion())+float(self.getEdidRevision())/10.0
+        return float(self.getEdidVersion()) + \
+            float(self.getEdidRevision()) / 10.0
 
     # Basic display parameters (20-24)
 
@@ -313,10 +314,12 @@ class EDID(bytearray):
 
     # Standard timing information (38-53)
 
-    def setStandardTimingInformation(self, index, resolutionX, ratio, verticalFrequency):
-        if (resolutionX == None) and (ratio == None) and (verticalFrequency == None):
-            self[38+2*index+0] = 1
-            self[38+2*index+1] = 1
+    def setStandardTimingInformation(
+            self, index, resolutionX, ratio, verticalFrequency):
+        if (resolutionX is None) and (ratio is None) and (
+                verticalFrequency is None):
+            self[38 + 2 * index + 0] = 1
+            self[38 + 2 * index + 1] = 1
             return
 
         if not isinstance(resolutionX, int):
@@ -333,47 +336,57 @@ class EDID(bytearray):
                 60 and verticalFrequency <= 123):
             raise ValueError
 
-        self[38+2*index+0] = (resolutionX>>3)-31
+        self[38 + 2 * index + 0] = (resolutionX >> 3) - 31
 
         if (ratio == 1.0):
             if (self.getVersion() < 1.3):
-                self[38+2*index+1] = 0
+                self[38 + 2 * index + 1] = 0
             else:
                 raise ValueError
-        elif (ratio == 16.0/10.0):
+        elif (ratio == 16.0 / 10.0):
             if (self.getVersion() >= 1.3):
-                self[38+2*index+1] = 0
+                self[38 + 2 * index + 1] = 0
             else:
                 raise ValueError
-        elif (ratio == 4.0/3.0):
-            self[38+2*index+1] = 1 << 6
-        elif (ratio == 5.0/4.0):
-            self[38+2*index+1] = 2 << 6
-        elif (ratio == 16.0/9.0):
-            self[38+2*index+1] = 3 << 6
+        elif (ratio == 4.0 / 3.0):
+            self[38 + 2 * index + 1] = 1 << 6
+        elif (ratio == 5.0 / 4.0):
+            self[38 + 2 * index + 1] = 2 << 6
+        elif (ratio == 16.0 / 9.0):
+            self[38 + 2 * index + 1] = 3 << 6
 
-        self[38+2*index+1] = self[38+2*index+1] | (verticalFrequency-60)
+        self[
+            38 +
+            2 *
+            index +
+            1] = self[
+            38 +
+            2 *
+            index +
+            1] | (
+            verticalFrequency -
+            60)
 
     def getStandardTimingInformation(self, index):
         # check for invalid entry
-        if (self[38+2*index+0] == 1) and (self[38+2*index+1] == 1):
+        if (self[38 + 2 * index + 0] == 1) and (self[38 + 2 * index + 1] == 1):
             return None, None, None
 
-        resolutionX = 8*(31+self[38+2*index+0])
-        ratioRaw = self[38+2*index+1] >> 6
+        resolutionX = 8 * (31 + self[38 + 2 * index + 0])
+        ratioRaw = self[38 + 2 * index + 1] >> 6
         if (ratioRaw == 0) and (self.getVersion() < 1.3):
             ratio = 1.0
         elif (ratioRaw == 0):
-            ratio = 16.0/10.0
+            ratio = 16.0 / 10.0
         elif (ratioRaw == 1):
-            ratio = 4.0/3.0
+            ratio = 4.0 / 3.0
         elif (ratioRaw == 2):
-            ratio = 5.0/4.0
+            ratio = 5.0 / 4.0
         elif (ratioRaw == 3):
-            ratio = 16.0/9.0
+            ratio = 16.0 / 9.0
         else:
             ratio = None
-        verticalFrequency = 60 + (self[38+2*index+1] & 0x3F)
+        verticalFrequency = 60 + (self[38 + 2 * index + 1] & 0x3F)
 
         return resolutionX, ratio, verticalFrequency
 
@@ -382,7 +395,7 @@ class EDID(bytearray):
             raise TypeError
 
         if not (numberOfExtensions >= 0
-            and numberOfExtensions <= 0xFF):
+                and numberOfExtensions <= 0xFF):
             raise ValueError
 
         self[126] = numberOfExtensions
@@ -398,7 +411,7 @@ class EDID(bytearray):
 def main():
     print(round(0.5, 0))
 
-    edid = EDID(version=1.3)
+    edid = Edid(version=1.3)
 
     edid.setHeader()
 
@@ -419,7 +432,7 @@ def main():
 
     edid.setDisplayGamma(2.2)
 
-    edid.setStandardTimingInformation(0, 640, 4.0/3.0, 60)
+    edid.setStandardTimingInformation(0, 640, 4.0 / 3.0, 60)
 
     edid.setVideoInputParametersBitmap(0x80)
 

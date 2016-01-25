@@ -1,9 +1,9 @@
 import unittest
 import copy
-import EDID
+from edid import Edid
 
 
-class EDIDTests(unittest.TestCase):
+class EdidTests(unittest.TestCase):
     VALID_EDID_DATA = [
         # http://kodi.wiki/view/Creating_and_using_edid.bin_via_xorg.conf
         bytearray.fromhex('''
@@ -68,23 +68,23 @@ class EDIDTests(unittest.TestCase):
 
     def testCheckChecksumValid(self):
         for data in self.VALID_EDID_DATA:
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertTrue(edid.checkChecksum())
 
     def testCheckChecksumInvalid(self):
-        edid = EDID.EDID(data=self.VALID_EDID_DATA[0])
+        edid = Edid(data=self.VALID_EDID_DATA[0])
         edid[127] = 0
         self.assertFalse(edid.checkChecksum())
 
     def testCalculateChecksum(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid[-1] = 42
 
         edid.calculateChecksum()
         self.assertEqual(edid[127], 0x00)
 
     def testCalculateChecksum2(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid[0] = 1
 
         edid.calculateChecksum()
@@ -92,207 +92,207 @@ class EDIDTests(unittest.TestCase):
 
     def testCheckHeaderValid(self):
         for data in self.VALID_EDID_DATA:
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertTrue(edid.checkHeader())
 
     def testCheckHeaderInvalid(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         self.assertFalse(edid.checkHeader())
 
     def testSetHeader(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setHeader()
         self.assertEqual(edid[0:8],
                          bytearray.fromhex('00 FF FF FF FF FF FF 00'))
 
     def testSetManufacturerID(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setManufacturerID('SAM')
         self.assertEqual(edid[8:10], bytearray.fromhex('4C 2D'))
 
     def testGetManufacturerID(self):
         manufacturerIDs = ['SAM', 'FTB', 'APP']
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(edid.getManufacturerID(), manufacturerIDs[key])
 
     def testSetManufacturerProductCode(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setManufacturerProductCode(956)
         self.assertEqual(edid[10:12], bytearray.fromhex('BC 03'))
 
     def testGetManufacturerProductCode(self):
         manufacturerProductCodes = [956, 256, 44547]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getManufacturerProductCode(),
                 manufacturerProductCodes[key])
 
     def testSetSerialNumber(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setSerialNumber(12345678)
         self.assertEqual(edid[12:16], bytearray.fromhex('4E 61 BC 00'))
 
     def testGetSerialNumber(self):
         serialNumbers = [0, 16777216, 3471271974]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(edid.getSerialNumber(), serialNumbers[key])
 
     def testSetWeekOfManufacture(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setWeekOfManufacture(15)
         self.assertEqual(edid[16], 15)
 
     def testGetWeekOfManufacture(self):
         weekOfManufactures = [47, 12, 12]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getWeekOfManufacture(),
                 weekOfManufactures[key])
 
     def testSetYearOfManufacture(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setYearOfManufacture(2016)
         self.assertEqual(edid[17], 26)
 
     def testGetYearOfManufacture(self):
         yearOfManufactures = [2007, 2011, 2014]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getYearOfManufacture(),
                 yearOfManufactures[key])
 
     def testSetEdidVersion(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setEdidVersion(1)
         self.assertEqual(edid[18], 1)
 
     def testGetEdidVersion(self):
         edidVersions = [1, 1, 1]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(edid.getEdidVersion(), edidVersions[key])
 
     def testSetEdidRevision(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setEdidRevision(3)
         self.assertEqual(edid[19], 3)
 
     def testGetEdidRevision(self):
         edidRevisions = [3, 2, 4]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(edid.getEdidRevision(), edidRevisions[key])
 
     def testGetVersion(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setEdidVersion(1)
         edid.setEdidRevision(3)
-        self.assertAlmostEqual(edid.getVersion(), 1.3, places = 1)
+        self.assertAlmostEqual(edid.getVersion(), 1.3, places=1)
 
     def testSetVideoInputParametersBitmap(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setVideoInputParametersBitmap(0x80)
         self.assertEqual(edid[20], 0x80)
 
     def testGetVideoInputParametersBitmap(self):
         videoInputParametersBitmaps = [0x80, 0x08, 0xB5]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getVideoInputParametersBitmap(),
                 videoInputParametersBitmaps[key])
 
     def testSetMaximumHorizontalImageSize(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setMaximumHorizontalImageSize(0x80)
         self.assertEqual(edid[21], 0x80)
 
     def testGetMaximumHorizontalImageSize(self):
         maximumHorizontalImageSizes = [16, 17, 60]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getMaximumHorizontalImageSize(),
                 maximumHorizontalImageSizes[key])
 
     def testSetMaximumVerticalImageSize(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setMaximumVerticalImageSize(0x80)
         self.assertEqual(edid[22], 0x80)
 
     def testGetMaximumVerticalImageSize(self):
         maximumVerticalImageSizes = [900, 1300, 3400]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getMaximumVerticalImageSize(),
                 maximumVerticalImageSizes[key])
 
     def testSetDisplayGamma(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setDisplayGamma(2.2)
         self.assertEqual(edid[23], 120)
 
     def testGetDisplayGamma(self):
         displayGammas = [2.2, 2.2, 2.2]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(edid.getDisplayGamma(), displayGammas[key])
 
     def testSetSupportedFeaturesBitmap(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setSupportedFeaturesBitmap(10)
         self.assertEqual(edid[24], 10)
 
     def testGetSupportedFeaturesBitmap(self):
         supportedFeaturesBitmaps = [0x0A, 0x05, 0x22]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getSupportedFeaturesBitmap(),
                 supportedFeaturesBitmaps[key])
 
     def testSetEstablishedTimingBitmap(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setEstablishedTimingBitmap(0x123456)
         self.assertEqual(edid[35:38], bytearray.fromhex('12 34 56'))
 
     def testGetEstablishedTimingBitmap(self):
         establishedTimingBitmaps = [0x210800, 0x200000, 0]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getEstablishedTimingBitmap(),
                 establishedTimingBitmaps[key])
 
     def testSetChromaticityCoordinatesRed(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setChromaticityCoordinatesRed(0.888, 0.777)
         self.assertEqual(edid[25], 0x10)
         self.assertEqual(edid[27], 0xE3)
         self.assertEqual(edid[28], 0xC7)
 
     def testSetChromaticityCoordinatesGreen(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setChromaticityCoordinatesGreen(0.888, 0.777)
         self.assertEqual(edid[25], 0x01)
         self.assertEqual(edid[29], 0xE3)
         self.assertEqual(edid[30], 0xC7)
 
     def testSetChromaticityCoordinatesBlue(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setChromaticityCoordinatesBlue(0.888, 0.777)
         self.assertEqual(edid[26], 0x10)
         self.assertEqual(edid[31], 0xE3)
         self.assertEqual(edid[32], 0xC7)
 
     def testSetChromaticityCoordinatesWhite(self):
-        edid = EDID.EDID(data=bytearray(128))
+        edid = Edid(data=bytearray(128))
         edid.setChromaticityCoordinatesWhite(0.888, 0.777)
         self.assertEqual(edid[26], 0x01)
         self.assertEqual(edid[33], 0xE3)
@@ -302,7 +302,7 @@ class EDIDTests(unittest.TestCase):
         chromaticityCoordinatesReds = [
             (0.640, 0.330), (0.0, 0.0), (0.655, 0.332)]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             coordinates = edid.getChromaticityCoordinatesRed()
             self.assertAlmostEqual(
                 coordinates[0],
@@ -315,7 +315,7 @@ class EDIDTests(unittest.TestCase):
         chromaticityCoordinatesGreen = [
             (0.300, 0.600), (0.0, 0.0), (0.295, 0.625)]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             coordinates = edid.getChromaticityCoordinatesGreen()
             self.assertAlmostEqual(
                 coordinates[0],
@@ -328,7 +328,7 @@ class EDIDTests(unittest.TestCase):
         chromaticityCoordinatesBlues = [
             (0.150, 0.060), (0.0, 0.0), (0.148, 0.047)]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             coordinates = edid.getChromaticityCoordinatesBlue()
             self.assertAlmostEqual(
                 coordinates[0],
@@ -341,7 +341,7 @@ class EDIDTests(unittest.TestCase):
         chromaticityCoordinatesWhites = [
             (0.312, 0.329), (0.0, 0.0), (0.313, 0.329)]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             coordinates = edid.getChromaticityCoordinatesWhite()
             self.assertAlmostEqual(
                 coordinates[0],
@@ -352,61 +352,69 @@ class EDIDTests(unittest.TestCase):
 
     def testSetStandardTimingInformation(self):
         for index in range(0, 8):
-            edid = EDID.EDID(version = 1.2)
+            edid = Edid(version=1.2)
             edid.setStandardTimingInformation(index, 640, 1.0, 70)
-            self.assertEqual(edid[38+2*index+0], 49)
-            self.assertEqual(edid[38+2*index+1], 10)
+            self.assertEqual(edid[38 + 2 * index + 0], 49)
+            self.assertEqual(edid[38 + 2 * index + 1], 10)
 
-            edid = EDID.EDID(version = 1.3)
+            edid = Edid(version=1.3)
             edid.setStandardTimingInformation(index, None, None, None)
-            self.assertEqual(edid[38+2*index+0], 1)
-            self.assertEqual(edid[38+2*index+1], 1)
+            self.assertEqual(edid[38 + 2 * index + 0], 1)
+            self.assertEqual(edid[38 + 2 * index + 1], 1)
 
-            edid = EDID.EDID(version = 1.3)
-            edid.setStandardTimingInformation(index, 256, 16.0/10.0, 80)
-            self.assertEqual(edid[38+2*index+0], 1)
-            self.assertEqual(edid[38+2*index+1], 20)
+            edid = Edid(version=1.3)
+            edid.setStandardTimingInformation(index, 256, 16.0 / 10.0, 80)
+            self.assertEqual(edid[38 + 2 * index + 0], 1)
+            self.assertEqual(edid[38 + 2 * index + 1], 20)
 
-            edid = EDID.EDID(version = 1.3)
-            edid.setStandardTimingInformation(index, 1024, 4.0/3.0, 90)
-            self.assertEqual(edid[38+2*index+0], 97)
-            self.assertEqual(edid[38+2*index+1], 94)
+            edid = Edid(version=1.3)
+            edid.setStandardTimingInformation(index, 1024, 4.0 / 3.0, 90)
+            self.assertEqual(edid[38 + 2 * index + 0], 97)
+            self.assertEqual(edid[38 + 2 * index + 1], 94)
 
-            edid = EDID.EDID(version = 1.3)
-            edid.setStandardTimingInformation(index, 1600, 5.0/4.0, 100)
-            self.assertEqual(edid[38+2*index+0], 169)
-            self.assertEqual(edid[38+2*index+1], 168)
+            edid = Edid(version=1.3)
+            edid.setStandardTimingInformation(index, 1600, 5.0 / 4.0, 100)
+            self.assertEqual(edid[38 + 2 * index + 0], 169)
+            self.assertEqual(edid[38 + 2 * index + 1], 168)
 
-            edid = EDID.EDID(version = 1.3)
-            edid.setStandardTimingInformation(index, 1920, 16.0/9.0, 120)
-            self.assertEqual(edid[38+2*index+0], 209)
-            self.assertEqual(edid[38+2*index+1], 252)
+            edid = Edid(version=1.3)
+            edid.setStandardTimingInformation(index, 1920, 16.0 / 9.0, 120)
+            self.assertEqual(edid[38 + 2 * index + 0], 209)
+            self.assertEqual(edid[38 + 2 * index + 1], 252)
 
     def testGetStandardTimingInformation(self):
         standardTimingInformations = [
-            [(1280, 5.0/4.0, 60), (1600, 4.0/3.0, 60)],
-            [(640, 4.0/3.0, 60)],
+            [(1280, 5.0 / 4.0, 60), (1600, 4.0 / 3.0, 60)],
+            [(640, 4.0 / 3.0, 60)],
             []
-            ]
+        ]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             for index in range(0, 8):
-                standardTimingInformation = edid.getStandardTimingInformation(index)
-                correctStandardTimingInformation = standardTimingInformations[key][index] if index < len(standardTimingInformations[key]) else (None, None, None)
+                standardTimingInformation = edid.getStandardTimingInformation(
+                    index)
+                correctStandardTimingInformation = standardTimingInformations[key][
+                    index] if index < len(standardTimingInformations[key]) else (None, None, None)
 
-                self.assertEqual(standardTimingInformation[0], correctStandardTimingInformation[0])
-                self.assertEqual(standardTimingInformation[1], correctStandardTimingInformation[1])
-                self.assertEqual(standardTimingInformation[2], correctStandardTimingInformation[2])
+                self.assertEqual(
+                    standardTimingInformation[0],
+                    correctStandardTimingInformation[0])
+                self.assertEqual(
+                    standardTimingInformation[1],
+                    correctStandardTimingInformation[1])
+                self.assertEqual(
+                    standardTimingInformation[2],
+                    correctStandardTimingInformation[2])
 
     def testSetNumberOfExtensions(self):
-        edid = EDID.EDID(version = 1.3)
+        edid = Edid(version=1.3)
         edid.setNumberOfExtensions(2)
         self.assertEqual(edid[126], 2)
 
     def testGetNumberOfExtensions(self):
         numberOfExtensions = [1, 0, 2]
         for key, data in enumerate(self.VALID_EDID_DATA):
-            edid = EDID.EDID(data=data)
+            edid = Edid(data=data)
             self.assertEqual(
                 edid.getNumberOfExtensions(),
                 numberOfExtensions[key])
