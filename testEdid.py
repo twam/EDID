@@ -98,17 +98,34 @@ class EdidTests(unittest.TestCase):
 
     def testCalculateChecksum(self):
         edid = Edid(data=bytearray(128))
-        edid[-1] = 42
+        # put wrong checksum
+        edid[127] = 42
 
         edid.calculateChecksum()
+        self.assertTrue(edid.checkChecksum())
         self.assertEqual(edid[127], 0x00)
 
     def testCalculateChecksum2(self):
         edid = Edid(data=bytearray(128))
+        # change data
         edid[0] = 1
 
         edid.calculateChecksum()
+        self.assertTrue(edid.checkChecksum())
         self.assertEqual(edid[127], 255)
+
+    def testCalculateChecksum3(self):
+        edid = Edid(data=bytearray(128))
+        for i in range(0, 127):
+            edid[i] = 2
+
+        # Databytes: 127 * 2 = 254
+        # Checksum: 2
+        # Sum: 256 % 256 = 0
+
+        edid.calculateChecksum()
+        self.assertTrue(edid.checkChecksum())
+        self.assertEqual(edid[127], 2)
 
     def testCheckHeaderValid(self):
         for data in self.VALID_EDID_DATA:

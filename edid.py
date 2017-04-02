@@ -82,10 +82,10 @@ class Edid(bytearray):
     def calculateChecksum(self):
         val = 0
 
-        for i in self[0:126]:
+        for i in self[0:127]:
             val += i
 
-        self[127] = (255 - (val % 256)) % 256
+        self[127] = (256 - (val % 256)) % 256
 
     def checkChecksum(self):
         val = 0
@@ -495,6 +495,7 @@ def main():
 
     edid.calculateChecksum()
     edid.writeToFile('edid.dat')
+
 
 if __name__ == "__main__":
     main()
