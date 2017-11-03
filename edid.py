@@ -174,6 +174,14 @@ class Edid(bytearray):
     def getYearOfManufacture(self):
         return 1990 + self[17]
 
+    def setMonitorName(self, monitorName):
+        clipped = monitorName + "\x0a             "
+
+        self[113:126] = clipped[:13].encode()
+
+    def getMonitorName(self):
+        return self[113:126].decode().split('\x0a')[0]
+
     def setEdidVersion(self, edidVersion):
         if not isinstance(edidVersion, int):
             raise TypeError
